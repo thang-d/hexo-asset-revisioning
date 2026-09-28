@@ -1,54 +1,46 @@
 'use strict';
 
-const revision = require('./lib/core');
-const config = hexo.config;
+/* global hexo */
 
-/**
- * Start things is hexo.config.revisioning is defined in _config.yaml.
- */
+const DEFAULTS = {
+  enable: false,
+  keep: false,
+  include: ['*.{css,js,mjs,png,jpg,jpeg,gif,webp,avif,svg,ico,bmp,woff,woff2,ttf,otf,eot,mp4,webm,ogg,mp3,wav}'],
+  exclude: [],
+  root: '',
+  selectors: {
+    'img[src]': 'src',
+    'img[srcset]': 'srcset',
+    'img[data-src]': 'data-src',
+    'img[data-srcset]': 'data-srcset',
+    'source[src]': 'src',
+    'source[srcset]': 'srcset',
+    'video[src]': 'src',
+    'video[poster]': 'poster',
+    'audio[src]': 'src',
+    'script[src]': 'src',
+    'link[rel~="stylesheet"]': 'href',
+    'link[rel~="icon"]': 'href',
+    'link[rel="apple-touch-icon"]': 'href',
+    'link[rel="preload"]': 'href',
+    'link[rel="modulepreload"]': 'href',
+    '[style]': 'style',
+  },
+  match: {
+    matchBase: true,
+    nocase: true,
+  },
+};
 
-if (config.revisioning) {
-  /**
-   * Hook to enable revisioning.
-   */
-  const revisioningDefaults = {
-    exclude: [],
-    root: '',
+const config = hexo.config.revisioning;
+
+if (config && config.enable) {
+  hexo.config.revisioning = {
+    ...DEFAULTS,
+    ...config,
+    selectors: { ...DEFAULTS.selectors, ...config.selectors },
+    match: { ...DEFAULTS.match, ...config.match },
   };
-  const soupConfig = {
-    selectors: {
-      'img[data-src]': 'data-src',
-      'img[src]': 'src',
-      'link[rel="apple-touch-icon"]': 'href',
-      'link[rel="icon"]': 'href',
-      'link[rel="shortcut icon"]': 'href',
-      'link[rel="stylesheet"]': 'href',
-      'script[src]': 'src',
-      'source[src]': 'src',
-      'video[poster]': 'poster',
-    },
-  };
-  const matchConfig = {
-    match: {
-      matchBase: true,
-    },
-  };
 
-  config.revisioning = Object.assign(
-    revisioningDefaults,
-    soupConfig,
-    matchConfig,
-    config.revisioning || {},
-  );
-
-  if (config.revisioning.enable) {
-    hexo.extend.filter.register('after_generate', revision);
-  }
-
-  hexo.extend.filter.register('after_init', function () {
-    // Setup revisioning for caching data
-    hexo.assetRevisioning = {
-      revIndex: {},
-    };
-  });
+  hexo.extend.filter.register('after_generate', require('./lib/revision'));
 }

@@ -1,57 +1,86 @@
 # hexo-asset-revisioning
 
-Enabling revisioning of assets for Hexo to support all types. Fork from [hexo-asset-pipeline](https://github.com/hexojs/hexo-asset-pipeline).
+Content-hash revisioning (cache busting) of assets for [Hexo](https://hexo.io).
 
-A fork from `hexo-asset-pipeline` but with only revisioning of assets and support Hexo 3, 4, 5.x.x and pass options matching file in `_config.yml`.
+On `hexo generate` (and `hexo server`), every asset is renamed after the MD5 hash of its content, and every reference to it is updated:
 
-If you want to minify and optimations assets, please intergrated [hexo-all-minifier](https://github.com/chenzhutian/hexo-all-minifier). We are `hexo-asset-revisioning` + `hexo-all-minifier` = `hexo-asset-pipeline`.
+```
+css/style.css          -> css/style-240a11c15c3e27cb1cbfd92fd27a093f.css
+css/images/banner.jpg  -> css/images/banner-0394d7ba5b310b5037d2a139bef63fa4.jpg
+```
+
+You can then serve assets with a long `Cache-Control` lifetime: a changed file always gets a new URL.
+
+- References are rewritten in HTML (configurable selectors, `srcset`, `style` attributes and `<style>` blocks) and in CSS (`url()` and `@import`), whether they are absolute (`/css/a.css`), relative (`../img/a.png`) or full site URLs (`https://example.com/css/a.css`).
+- Stylesheets are hashed after the files they reference, so changing an image also changes the name of the stylesheet that uses it.
+- HTML pages are never renamed, and only the URLs are touched: the rest of the markup is kept byte for byte.
+
+Originally a fork of [hexo-asset-pipeline](https://github.com/hexojs/hexo-asset-pipeline), keeping only revisioning. For minification, combine it with a minifier such as [hexo-all-minifier](https://github.com/chenzhutian/hexo-all-minifier).
+
+## Requirements
+
+- Hexo 7 or 8
+- Node.js 20.19 or newer
 
 ## Installation
 
-``` bash
+```bash
 npm install hexo-asset-revisioning --save
 ```
 
 ## Configuration
 
-Add the following snippet to `_config.yml`.
+Add to `_config.yml`:
 
 ```yaml
 revisioning:
   enable: true
-  keep: false
-  exclude: ['robots.txt', '*.json']
-  selectors:
-    'img[data-orign]':  data-orign
-    'img[data-src]': 'data-src'
-    'img[src]': 'src'
 ```
 
-- **enable** - Enable revisioning of assets. Defaults to `false`.
-- **keep** - Keep original assets. Defaults to `false`.
-- **exclude** - Exclude files from revisioning.
-- **selectors** - It is used so that custom implementations can be processed. Any attribute matching the key should have the asset url in the value. For instance in above example any element matching to `img[data-orign]` will have the URL for asset in `data-origin` attribute, this specific case can be helpful for [jquery lazyload](https://github.com/tuupola/jquery_lazyload) implementations.
-
-## Revisioning defaults
+All options, with their defaults:
 
 ```yaml
 revisioning:
-  enable: false
-  keep: false
-  exclude: []
-  root: ''
-  selectors:
-    'img[data-src]': 'data-src'
-    'img[src]': 'src'
-    'link[rel="apple-touch-icon"]': 'href'
-    'link[rel="icon"]': 'href'
-    'link[rel="shortcut icon"]': 'href'
-    'link[rel="stylesheet"]': 'href'
-    'script[src]': 'src'
-    'source[src]': 'src'
-    'video[poster]': 'poster'
-  match:
+  enable: false   # Turn revisioning on.
+  keep: false     # Also keep the original, un-revisioned files.
+  include:        # Files to revision (globs).
+    - '*.{css,js,mjs,png,jpg,jpeg,gif,webp,avif,svg,ico,bmp,woff,woff2,ttf,otf,eot,mp4,webm,ogg,mp3,wav}'
+  exclude: []     # Files never to revision or rewrite (globs); a single string works too.
+  root: ''        # URL prefix of the assets; defaults to Hexo's `root`.
+  selectors:      # HTML elements and the attribute holding the asset URL.
+    'img[src]': src
+    'img[srcset]': srcset
+    'img[data-src]': data-src
+    'img[data-srcset]': data-srcset
+    'source[src]': src
+    'source[srcset]': srcset
+    'video[src]': src
+    'video[poster]': poster
+    'audio[src]': src
+    'script[src]': src
+    'link[rel~="stylesheet"]': href
+    'link[rel~="icon"]': href
+    'link[rel="apple-touch-icon"]': href
+    'link[rel="preload"]': href
+    'link[rel="modulepreload"]': href
+    '[style]': style
+  match:          # Options passed to minimatch for include and exclude.
     matchBase: true
+    nocase: true
 ```
 
-**Note**: To match paths in `exclude` option, glob matching is done using [minmatch](https://github.com/isaacs/minimatch)
+- **selectors** are merged with the defaults. Add your own (for example `'img[data-original]': data-original` for a lazy-load script) or disable a default by setting it to `false`.
+- **include** / **exclude** are matched with [minimatch](https://github.com/isaacs/minimatch) against the output path (`css/style.css`). With `matchBase`, a pattern without a slash matches the file name in any folder.
+- HTML files are always rewritten (unless excluded) and never renamed. Files outside `include`, such as feeds, sitemaps or `robots.txt`, are left alone.
+- JavaScript files are renamed but their content is not rewritten: URLs built inside scripts are not detected.
+
+## Upgrading from 1.x
+
+- Requires Node.js 20.19+ and Hexo 7+.
+- Only files matching `include` are revisioned. 1.x renamed every non-HTML file, including `atom.xml`, `sitemap.xml` or `CNAME`.
+- `selectors` are now merged with the defaults instead of replacing them.
+- JavaScript content is no longer rewritten. 1.x replaced file names inside scripts by plain text search, which could corrupt unrelated code.
+
+## License
+
+MIT
