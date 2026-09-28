@@ -1,42 +1,51 @@
 {
   "name": "hexo-asset-revisioning",
-  "version": "1.0.1",
-  "description": "Enabling revisioning of assets for Hexo to support all types. Fork from hexo-asset-pipeline",
+  "version": "2.0.0",
+  "description": "Content-hash revisioning (cache busting) of assets for Hexo",
   "main": "index.js",
-  "directories": {
-    "lib": "lib"
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
   },
-  "dependencies": {
-    "bluebird": "^3.7.2",
-    "hasha": "^5.2.2",
-    "minimatch": "^3.0.4",
-    "rev-path": "^2.0.0",
-    "soup": "^0.1.5",
-    "stream-to-array": "^2.3.0"
-  },
-  "devDependencies": {
-    "hexo": "^5.4.0"
+  "peerDependencies": {
+    "hexo": ">=7.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "typecheck": "tsc",
+    "check": "npm run typecheck && npm test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thangl3/hexo-asset-revisioning.git"
+    "url": "git+https://github.com/thang-d/hexo-asset-revisioning.git"
   },
   "keywords": [
-    "revisioning",
-    "hexo-revisioning",
-    "hexo-asset-revisioning",
-    "thangl3",
     "hexo",
     "hexo-plugin",
-    "hexo-plugins"
+    "revisioning",
+    "cache-busting",
+    "fingerprint",
+    "hash",
+    "assets"
   ],
   "author": "thangl3",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/thangl3/hexo-asset-revisioning/issues"
+    "url": "https://github.com/thang-d/hexo-asset-revisioning/issues"
   },
-  "homepage": "https://github.com/thangl3/hexo-asset-revisioning#readme"
+  "homepage": "https://github.com/thang-d/hexo-asset-revisioning#readme",
+  "dependencies": {
+    "css-select": "^5.2.2",
+    "minimatch": "^10.2.6",
+    "parse5": "^7.3.0",
+    "parse5-htmlparser2-tree-adapter": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "hexo": "^8.1.2",
+    "typescript": "^5.9.3"
+  }
 }
