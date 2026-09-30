@@ -1,8 +1,13 @@
 {
   "name": "hexo-asset-revisioning",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Content-hash revisioning (cache busting) of assets for Hexo",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./url": "./lib/url.js",
+    "./package.json": "./package.json"
+  },
   "files": [
     "index.js",
     "lib"

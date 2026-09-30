@@ -74,6 +74,20 @@ revisioning:
 - HTML files are always rewritten (unless excluded) and never renamed. Files outside `include`, such as feeds, sitemaps or `robots.txt`, are left alone.
 - JavaScript files are renamed but their content is not rewritten: URLs built inside scripts are not detected.
 
+## Programmatic API
+
+The naming helpers are available on their own, for references the `after_generate` pass cannot rewrite because they are not plain markup at that point, such as an `<img>` inside content that another plugin encrypts before the page is written.
+
+```js
+const { revisionRef } = require('hexo-asset-revisioning/url');
+const { createHash } = require('crypto');
+
+const hash = createHash('md5').update(fileBuffer).digest('hex');
+const revisioned = revisionRef('/img/banner.png', hash); // -> /img/banner-<hash>.png
+```
+
+`revisionRef(ref, hash)` inserts `-<hash>` before the extension, keeping the directory, query, fragment and URL encoding. `revisionPath(routePath, hash)` does the same for a bare route path. `resolveRef`, `rewriteRef` and `rewriteSrcset` are also exported. The hash is the md5 of the file's contents, the same one the plugin uses, so a reference built this way matches the file the plugin produces.
+
 ## Upgrading from 1.x
 
 - Requires Node.js 20.19+ and Hexo 7+.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+- New: the URL helpers are now a public entry point, `require('hexo-asset-revisioning/url')`, exposing `revisionRef`, `revisionPath`, `resolveRef`, `rewriteRef` and `rewriteSrcset`. This lets a site compute a revisioned reference itself, for cases the `after_generate` pass cannot reach, such as an `<img>` inside content a plugin encrypts before it is written to the page.
+- Added an `exports` map. `hexo-asset-revisioning` (the plugin) and `hexo-asset-revisioning/url` are the supported entry points; the `lib/` layout is now internal.
+
 ## 2.0.0
 
 - Rewritten for Hexo 7 and 8 (Node.js 20.19+).
